@@ -1,0 +1,75 @@
+function isPromisingPennyStock(stock, settings) {
+  const {
+    maxPrice,
+    minVolume,
+    minMarketCap,
+    maxMarketCap,
+    minVolumeSpike,
+    minPriceChange
+  } = settings;
+
+  const relVolume = stock.avg_volume > 0 ? stock.volume / stock.avg_volume : 0;
+
+  return (
+    stock.price <= maxPrice &&
+    stock.volume >= minVolume &&
+    stock.market_cap >= minMarketCap &&
+    stock.market_cap <= maxMarketCap &&
+    relVolume >= minVolumeSpike &&
+    stock.percent_change_1d >= minPriceChange
+  );
+}
+
+function calculateTradePlan(stock, maxRisk = 100, stopLossPct = 0.10, targetRewardPct = 0.25) {
+  const entry = stock.price;
+  const stop = parseFloat((entry * (1 - stopLossPct)).toFixed(2));
+  const target = parseFloat((entry * (1 + targetRewardPct)).toFixed(2));
+  const riskPerShare = entry - stop;
+  const shares = riskPerShare > 0 ? Math.floor(maxRisk / riskPerShare) : 0;
+  const totalCost = parseFloat((shares * entry).toFixed(2));
+  const expectedReward = parseFloat(((target - entry) * shares).toFixed(2));
+  const riskRewardRatio = maxRisk > 0 ? parseFloat((expectedReward / maxRisk).toFixed(2)) : 0;
+
+  return {
+    entry,
+    stop,
+    target,
+    shares,
+    totalCost,
+    expectedReward,
+    riskRewardRatio
+  };
+}
+
+// Example stock
+const stock = {
+  ticker: 'ABCD',
+  price: 1.20,
+  volume: 6000000,
+  avg_volume: 1500000,
+  market_cap: 95000000,
+  percent_change_1d: 8.3
+};
+
+// Scanner settings
+const scannerSettings = {
+  maxPrice: 5.00,
+  minVolume: 500000,
+  minMarketCap: 20000000,
+  maxMarketCap: 300000000,
+  minVolumeSpike: 2.0,
+  minPriceChange: 5.0
+};
+
+// Run filter + trade plan
+if (isPromisingPennyStock(stock, scannerSettings)) {
+  const trade = calculateTradePlan(stock);
+  console.log(`📈 Trade Setup for $${stock.ticker}`);
+  for (const [key, value] of Object.entries(trade)) {
+    const label = key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ');
+    console.log(`${label[0].toUpperCase() + label.slice(1)}: ${value}`);
+  }
+} else {
+  console.log(`❌ ${stock.ticker} does not meet scanner criteria.`);
+}
+
