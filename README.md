@@ -1,4 +1,4 @@
-# PoundFoolish - Penny Stock Screener
+# #foolish - penny stock screener
 
 A modern web application that identifies promising penny stocks by dynamically screening US stock markets using configurable criteria. Built with React, Vite, and Tailwind CSS, and powered by the Finnhub API.
 
